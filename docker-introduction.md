@@ -130,15 +130,27 @@ docker run <imageName>
 docker run -d <imageName>
 
 # running image and binding host-port:container-port, host-port must be unique but container port not
-docker run -p6000:6379 <imagename>
+docker run -p6000:6379 <imageName>
+
+# running and creating container with name, can rename existing containers
+docker run -d -p6001:6379 --name <containerName> <imageName>
+
+# running container that has previously created by docker run
+docker start <containerID>
 
 # stop image and container running on terminal
 Ctrl+c
 
 # stop container using id
 docker stop <containerID>
-```
 
+# view container logs
+docker logs <containerID>
+docker logs <containerName>
+
+# open terminal of running container, it stands for interactive terminal
+docker exec -it <containerID>
+```
 
 
 
