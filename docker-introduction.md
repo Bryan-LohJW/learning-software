@@ -108,7 +108,36 @@ Both Docker and Virtual Machines are virtualisation tools
 
 These differences makes docker containers much smaller and faster than virtual machines. But there might be issues with running some images depending on the kernel (mismatch of kernels). There is a workaround using **Docker Toolbox**. Docker runs natively on Windows 10
 
+## Basic Commands
 
+```sh
+# show running container and images
+docker ps
+
+# show all running and stopped containers and images
+docker ps -a
+
+# show available images on local repo
+docker images
+
+# pull image from repository
+docker pull <imageName>
+
+# run image, if not found locally will search dockerhub. Can specify version number at end
+docker run <imageName>
+
+# run image in a detached mode
+docker run -d <imageName>
+
+# running image and binding host-port:container-port, host-port must be unique but container port not
+docker run -p6000:6379 <imagename>
+
+# stop image and container running on terminal
+Ctrl+c
+
+# stop container using id
+docker stop <containerID>
+```
 
 
 
