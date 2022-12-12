@@ -135,8 +135,18 @@ docker run -p6000:6379 <imageName>
 # running and creating container with name, can rename existing containers
 docker run -d -p6001:6379 --name <containerName> <imageName>
 
+# running application within network with environmental variables
+docker run -d -p27017:27017 -e MONGO_INITDB_ROOT_PASSWORD=password -e MONGO_INITDB_ROOT_USERNAME=admin --name mongodb --net mongo-network mongo
+docker run -d -p8081:8081 -e ME_CONFIG_MONGODB_AUTH_USERNAME=admin -e ME_CONFIG_MONGODB_AUTH_PASSWORD=password --network mongo-network --name mongo-express -e ME_CONFIG_MONGODB_SERVER=mongodb mongo-express
+
 # running container that has previously created by docker run
 docker start <containerID>
+
+# removing container
+docker rm <containerId>
+
+# removing images
+docker rmi <imageId>
 
 # stop image and container running on terminal
 Ctrl+c
@@ -150,25 +160,113 @@ docker logs <containerName>
 
 # open terminal of running container, it stands for interactive terminal
 docker exec -it <containerID>
+
+# display networks in docker
+docker network ls
+
+# creating network for containers to run in
+docker network create <name>
+
+# docker compose command for starting
+docker-compose -f mongo.yaml up
+
+# docker compose command for stopping, also deletes network
+docker-compose -f mongo.yaml down
+
+# building docker app, the first parameter is tag, the other is the dockerfile location
+docker build -t my-app:1.0 .
 ```
 
+## Docker Demo Project
 
+Scenario: Developing JS application on laptop
 
+ - Developing app with MongoDB on docker
 
+ - Commit application to Git, that Jenkis uses for CI/DI and produces Docker Image and pushed to private docker repository.
 
+ - The server pulls the application image from the private repository, and also pulls MongoDB from docker hub.
 
+![Application Workflow](resources/docker-introduction-02-application-workflow-with-docker.png)
 
+ - Within an Isolated Docker Network, containers can communicate with each other just by using their container names.
 
+ - Check through the readme for configurations when connecting multiple containers, like mongo and mongo-express
 
+## Docker Compose
 
+Using a configuration file to configure multiple `docker run` commands to make it easier to start multiple containers and images at once
 
+It is a structured way to contain docker commands, with easy editing
 
+Network is not required to be specified as Docker Compose will create a common network for all containers using the container names
 
+```sh
+version: '3'
+services:
+  mongodb:
+    image: mongo
+    ports:
+      - 27017:27017
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+  mongo-express:
+    image: mongo-express
+    ports:
+      - 8080:8081
+    environment:
+      - ME_CONFIG_MONGODB_AUTH_USERNAME=admin
+      - ME_CONFIG_MONGODB_AUTH_PASSWORD=password
+      - ME_CONFIG_MONGODB_SERVER=mongodb
+    restart: on-failure
+```
 
+The network and container names can be found at the start of the logs after running `docker-compose`
 
+![Docker Compose Information](resources/docker-introduction-03-docker-compose-run.png)
 
+The logs of the different containers may be mixed as they could be waiting on each other
 
+There is no data persistance in containers by default, need to use volumes to persist data after each restart
 
+## Building Docker Image for JS Application
 
+To do so, need to package the application into a docker image
 
+Jenkins is the application that can help with building the docker image
+
+ - it packages the javascript file into docker image
+
+ - and puts it into a docker repository
+
+A dockerfile is a blueprint for creating docker images
+
+The image to be built will be built based off another image, in this case node
+
+Environmental variables can be set within the docker image, but better to place outside in docker-compose as it would be easier to ammend and configure for changes
+
+All the `RUN` commands are based on linux commands
+
+`COPY` command copies executes on the host machine, to copy files into the image
+
+Difference between `RUN` and `CMD` is that can have multiple `RUN` commands but `CMD` is the entrypoint command
+
+```
+FROM node
+
+ENV MONGO_DB_USERNAME=admin \ MONGO_DB_PWD=password
+
+RUN mkdir -p /home/app
+
+COPY . /home/app
+
+CMD ["node", "home/app/server.js"]
+```
+
+![Dockerfile Explaination](resources/docker-introduction-04-dockerfile-explaination.png)
+
+Dockerfile must be called 'Dockerfile'
+
+Whenever dockerfile changes, need to rebuild it again
 
